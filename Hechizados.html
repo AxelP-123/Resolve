@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+    <title>Math Wizards: Duelo de Conjuros</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Estilo RPG aesthetic morado */
+        body {
+            background: linear-gradient(135deg, #1a0033, #330066);
+            color: #e0b0ff;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        .menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #7b2cbf, #5a189a);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #c77dff;
+        }
+
+        #game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid #9d4edd;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px #7b2cbf;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #c77dff;
+            margin-bottom: 10px;
+        }
+
+        #battle-screen {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .wizard {
+            width: 45%;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: rgba(61, 0, 122, 0.3);
+            border: 1px solid #c77dff;
+        }
+
+        #player {
+            border-color: #00ff88;
+        }
+
+        #enemy {
+            border-color: #ff3860;
+        }
+
+        .health-bar {
+            height: 20px;
+            background-color: #330033;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        #player-health {
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            transition: width 0.5s;
+        }
+
+        #enemy-health {
+            background: linear-gradient(90deg, #ff3860, #cc0044);
+            transition: width 0.5s;
+        }
+
+        .mana-bar {
+            height: 10px;
+            background-color: #1a0033;
+            border-radius: 5px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        #player-mana-bar {
+            background: linear-gradient(90deg, #5a00ff, #8e2bff);
+        }
+
+        #enemy-mana-bar {
+            background: linear-gradient(90deg, #ff00aa, #ff2b8e);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        #spell-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .spell-btn {
+            background: linear-gradient(135deg, #7b2cbf, #5a189a);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .spell-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #c77dff;
+        }
+
+        .spell-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #question-display {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #5a189a;
+        }
+
+        .math-container {
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        #answer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        #answer-input {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #e0b0ff;
+            border: 1px solid #9d4edd;
+            padding: 10px;
+            width: 200px;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        #cast-btn {
+            background: linear-gradient(135deg, #00cc66, #00ff88);
+            color: #003320;
+            font-weight: bold;
+        }
+
+        #feedback {
+            min-height: 30px;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .correct {
+            background-color: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .incorrect {
+            background-color: rgba(255, 56, 96, 0.2);
+            color: #ff3860;
+        }
+
+        #battle-log {
+            height: 150px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid #5a189a;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            color: #e0b0ff;
+            padding: 5px;
+            border-radius: 3px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .player-log {
+            color: #00ff88;
+            background-color: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
+        }
+
+        .enemy-log {
+            color: #ff3860;
+            background-color: rgba(255, 56, 96, 0.1);
+            border-left: 3px solid #ff3860;
+        }
+
+        .system-log {
+            color: #c77dff;
+            font-style: italic;
+        }
+
+        #end-game-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            z-index: 50;
+            display: none;
+        }
+
+        #end-game-message {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .end-game-btn {
+            margin: 10px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #restart-btn {
+            background: linear-gradient(135deg, #7b2cbf, #5a189a);
+            color: white;
+        }
+
+        #menu-btn {
+            background: linear-gradient(135deg, #e0b0ff, #c77dff);
+            color: #330066;
+        }
+
+        .damage-animation {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .spell-animation {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0;
+            z-index: 10;
+            animation: spellCast 1s forwards;
+        }
+
+        @keyframes spellCast {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        mjx-container {
+            display: inline-block !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-btn" id="mainMenuBtn">🏠 Menú Principal</button>
+    
+    <div id="game-container">
+        <h1>MATH WIZARDS: Duelo de Conjuros</h1>
+        
+        <div id="battle-screen">
+            <div id="player" class="wizard">
+                <h2>Tú</h2>
+                <div class="health-bar">
+                    <div id="player-health" style="width: 100%"></div>
+                </div>
+                <div class="mana-bar">
+                    <div id="player-mana-bar" style="width: 100%"></div>
+                </div>
+                <div class="stats">
+                    <span>HP: <span id="player-health-text">100</span>/100</span>
+                    <span>MP: <span id="player-mana-text">100</span>/100</span>
+                </div>
+            </div>
+            
+            <div id="enemy" class="wizard">
+                <h2>Archienemigo</h2>
+                <div class="health-bar">
+                    <div id="enemy-health" style="width: 100%"></div>
+                </div>
+                <div class="mana-bar">
+                    <div id="enemy-mana-bar" style="width: 100%"></div>
+                </div>
+                <div class="stats">
+                    <span>HP: <span id="enemy-health-text">100</span>/100</span>
+                    <span>MP: <span id="enemy-mana-text">100</span>/100</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="question-display">¡Elige un hechizo para comenzar el duelo!</div>
+        
+        <div id="spell-buttons">
+            <button class="spell-btn" onclick="castSpell('integral')">∫ Integral</button>
+            <button class="spell-btn" onclick="castSpell('derivative')">d/dx Derivada</button>
+            <button class="spell-btn" onclick="castSpell('limit')">lim Límite</button>
+        </div>
+        
+        <div id="answer-container">
+            <input type="text" id="answer-input" placeholder="Tu respuesta...">
+            <button class="spell-btn" id="cast-btn" onclick="checkAnswer()">LANZAR</button>
+        </div>
+        
+        <div id="feedback"></div>
+        
+        <div id="battle-log">
+            <div class="log-entry system-log">El duelo matemático comienza...</div>
+        </div>
+        
+        <div id="end-game-screen">
+            <div id="end-game-message"></div>
+            <div>
+                <button class="end-game-btn" id="restart-btn">🔄 Jugar de nuevo</button>
+                <button class="end-game-btn" id="menu-btn">🏠 Menú Principal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables del juego
+        const player = {
+            health: 100,
+            maxHealth: 100,
+            mana: 100,
+            maxMana: 100,
+            score: 0,
+            spells: {
+                integral: { 
+                    name: "Integral", 
+                    cost: 20, 
+                    difficulty: 2,
+                    symbol: "∫"
+                },
+                derivative: { 
+                    name: "Derivada", 
+                    cost: 15, 
+                    difficulty: 1,
+                    symbol: "d/dx"
+                },
+                limit: { 
+                    name: "Límite", 
+                    cost: 30, 
+                    difficulty: 3,
+                    symbol: "lim"
+                }
+            }
+        };
+
+        const enemy = {
+            health: 100,
+            maxHealth: 100,
+            mana: 100,
+            maxMana: 100,
+            difficulty: 1
+        };
+
+        let currentSpell = null;
+        let currentProblem = null;
+        let isPlayerTurn = true;
+        let gameActive = true;
+
+        // Problemas matemáticos por tipo de hechizo
+        const problems = {
+            integral: [
+                { question: "\\int 2x \\, dx", answer: "x^2 + C" },
+                { question: "\\int 3x^2 \\, dx", answer: "x^3 + C" },
+                { question: "\\int e^x \\, dx", answer: "e^x + C" },
+                { question: "\\int \\sin x \\, dx", answer: "-\\cos x + C" },
+                { question: "\\int \\frac{1}{x} \\, dx", answer: "\\ln|x| + C" }
+            ],
+            derivative: [
+                { question: "\\frac{d}{dx} (x^3)", answer: "3x^2" },
+                { question: "\\frac{d}{dx} (\\cos x)", answer: "-\\sin x" },
+                { question: "\\frac{d}{dx} (\\ln x)", answer: "\\frac{1}{x}" },
+                { question: "\\frac{d}{dx} (e^{2x})", answer: "2e^{2x}" },
+                { question: "\\frac{d}{dx} (\\sqrt{x})", answer: "\\frac{1}{2\\sqrt{x}}" }
+            ],
+            limit: [
+                { question: "\\lim_{x \\to 0} \\frac{\\sin x}{x}", answer: "1" },
+                { question: "\\lim_{x \\to \\infty} \\frac{1}{x}", answer: "0" },
+                { question: "\\lim_{x \\to 2} \\frac{x^2 - 4}{x - 2}", answer: "4" },
+                { question: "\\lim_{x \\to 0} \\frac{e^x - 1}{x}", answer: "1" }
+            ]
+        };
+
+        // Elementos del DOM
+        const questionDisplay = document.getElementById("question-display");
+        const answerInput = document.getElementById("answer-input");
+        const feedback = document.getElementById("feedback");
+        const playerHealth = document.getElementById("player-health");
+        const enemyHealth = document.getElementById("enemy-health");
+        const playerManaBar = document.getElementById("player-mana-bar");
+        const enemyManaBar = document.getElementById("enemy-mana-bar");
+        const playerHealthText = document.getElementById("player-health-text");
+        const enemyHealthText = document.getElementById("enemy-health-text");
+        const playerManaText = document.getElementById("player-mana-text");
+        const enemyManaText = document.getElementById("enemy-mana-text");
+        const battleLog = document.getElementById("battle-log");
+        const endGameScreen = document.getElementById("end-game-screen");
+        const endGameMessage = document.getElementById("end-game-message");
+        const mainMenuBtn = document.getElementById("mainMenuBtn");
+        const restartBtn = document.getElementById("restart-btn");
+        const menuBtn = document.getElementById("menu-btn");
+
+        // Función para renderizar ecuaciones con MathJax
+        function renderMath(content) {
+            const container = document.createElement('div');
+            container.className = 'math-container';
+            
+            // Usamos \( \) para modo inline o \[ \] para display mode según el tamaño
+            const isLarge = content.includes('frac') || content.includes('int') || content.includes('lim');
+            const wrapper = isLarge ? `\\[${content}\\]` : `\\(${content}\\)`;
+            
+            container.innerHTML = wrapper;
+            
+            // Procesar con MathJax si está disponible
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([container]).catch(err => console.log('Error al renderizar MathJax:', err));
+            }
+            
+            return container;
+        }
+
+        // Inicializar el juego
+        function initGame() {
+            player.health = player.maxHealth;
+            player.mana = player.maxMana;
+            enemy.health = enemy.maxHealth;
+            enemy.mana = enemy.maxMana;
+            player.score = 0;
+            gameActive = true;
+            isPlayerTurn = true;
+            
+            updateStats();
+            battleLog.innerHTML = '<div class="log-entry system-log">El duelo matemático comienza...</div>';
+            questionDisplay.innerHTML = "¡Elige un hechizo para comenzar el duelo!";
+            feedback.textContent = "";
+            answerInput.value = "";
+            endGameScreen.style.display = "none";
+        }
+
+        // Lanzar hechizo
+        function castSpell(spellType) {
+            if (!isPlayerTurn || !gameActive) return;
+            
+            currentSpell = spellType;
+            const spell = player.spells[spellType];
+            
+            if (player.mana < spell.cost) {
+                feedback.textContent = "¡No tienes suficiente poder mágico (MP)!";
+                feedback.className = "incorrect";
+                return;
+            }
+            
+            player.mana -= spell.cost;
+            updateStats();
+            
+            // Seleccionar problema aleatorio
+            const spellProblems = problems[spellType];
+            currentProblem = spellProblems[Math.floor(Math.random() * spellProblems.length)];
+            
+            // Mostrar la pregunta con MathJax
+            questionDisplay.innerHTML = "";
+            questionDisplay.appendChild(renderMath(currentProblem.question));
+            
+            answerInput.value = "";
+            feedback.textContent = "";
+            answerInput.focus();
+            
+            createSpellAnimation(spell.symbol, document.getElementById("player"));
+            addToLog(`Lanzas un hechizo de ${spell.name}...`, "player");
+        }
+
+        // Crear animación de hechizo
+        function createSpellAnimation(symbol, element) {
+            const rect = element.getBoundingClientRect();
+            const animation = document.createElement("div");
+            animation.className = "spell-animation";
+            animation.textContent = symbol;
+            animation.style.left = `${rect.left + rect.width/2}px`;
+            animation.style.top = `${rect.top}px`;
+            document.body.appendChild(animation);
+            
+            setTimeout(() => {
+                animation.remove();
+            }, 1000);
+        }
+
+        // Verificar respuesta
+        function checkAnswer() {
+            if (!currentProblem || !isPlayerTurn || !gameActive) return;
+            
+            const userAnswer = answerInput.value.trim();
+            if (userAnswer === "") {
+                feedback.textContent = "¡Escribe una respuesta!";
+                feedback.className = "incorrect";
+                return;
+            }
+            
+            if (userAnswer.toLowerCase() === currentProblem.answer.toLowerCase()) {
+                // Respuesta correcta
+                const damage = calculateDamage();
+                enemy.health -= damage;
+                
+                feedback.textContent = `¡Correcto! Infliges ${damage} puntos de daño.`;
+                feedback.className = "correct";
+                
+                createSpellAnimation("💥", document.getElementById("enemy"));
+                document.getElementById("enemy").classList.add("damage-animation");
+                setTimeout(() => {
+                    document.getElementById("enemy").classList.remove("damage-animation");
+                }, 500);
+                
+                addToLog(`¡Aciertas! El enemigo pierde ${damage} HP.`, "player");
+                player.score += 10 * player.spells[currentSpell].difficulty;
+                
+                if (enemy.health <= 0) {
+                    enemy.health = 0;
+                    endGame(true);
+                    return;
+                }
+            } else {
+                // Respuesta incorrecta
+                feedback.textContent = `¡Fallaste! La respuesta correcta era: ${currentProblem.answer}`;
+                feedback.className = "incorrect";
+                addToLog("Fallaste el hechizo...", "player");
+            }
+            
+            updateStats();
+            currentProblem = null;
+            isPlayerTurn = false;
+            
+            if (gameActive) {
+                setTimeout(enemyTurn, 2000);
+            }
+        }
+
+        // Calcular daño basado en el hechizo
+        function calculateDamage() {
+            const spell = player.spells[currentSpell];
+            const baseDamage = 10 + (spell.difficulty * 5);
+            const variation = Math.floor(Math.random() * 10);
+            return baseDamage + variation;
+        }
+
+        // Turno del enemigo
+        function enemyTurn() {
+            if (!gameActive) return;
+            
+            // Aumentar dificultad según la salud del jugador
+            enemy.difficulty = 1 + Math.floor((player.maxHealth - player.health) / 25);
+            
+            // Seleccionar hechizo aleatorio
+            const spellTypes = Object.keys(problems);
+            const randomSpell = spellTypes[Math.floor(Math.random() * spellTypes.length)];
+            const spellProblems = problems[randomSpell];
+            const enemyProblem = spellProblems[Math.floor(Math.random() * spellProblems.length)];
+            
+            addToLog(`El enemigo prepara un hechizo de ${player.spells[randomSpell].name}...`, "enemy");
+            
+            // Mostrar la pregunta del enemigo
+            questionDisplay.innerHTML = "";
+            questionDisplay.appendChild(renderMath(enemyProblem.question));
+            
+            // El enemigo "piensa" antes de atacar
+            setTimeout(() => {
+                if (!gameActive) return;
+                
+                // El enemigo tiene una probabilidad de acertar basada en la dificultad
+                const successProbability = 0.5 + (enemy.difficulty * 0.1);
+                const succeeds = Math.random() < successProbability;
+                
+                if (succeeds) {
+                    const damage = calculateEnemyDamage();
+                    player.health -= damage;
+                    
+                    createSpellAnimation("💥", document.getElementById("player"));
+                    document.getElementById("player").classList.add("damage-animation");
+                    setTimeout(() => {
+                        document.getElementById("player").classList.remove("damage-animation");
+                    }, 500);
+                    
+                    addToLog(`¡El enemigo lanza ${player.spells[randomSpell].name} con éxito! Pierdes ${damage} HP.`, "enemy");
+                    
+                    if (player.health <= 0) {
+                        player.health = 0;
+                        endGame(false);
+                        return;
+                    }
+                } else {
+                    addToLog(`El enemigo falló su hechizo de ${player.spells[randomSpell].name}.`, "enemy");
+                }
+                
+                updateStats();
+                isPlayerTurn = true;
+                
+                if (gameActive) {
+                    questionDisplay.innerHTML = "¡Es tu turno! Elige un hechizo.";
+                    answerInput.value = "";
+                    feedback.textContent = "";
+                }
+            }, 2500);
+        }
+
+        // Calcular daño del enemigo
+        function calculateEnemyDamage() {
+            const baseDamage = 8 + (enemy.difficulty * 3);
+            const variation = Math.floor(Math.random() * 8);
+            return baseDamage + variation;
+        }
+
+        // Actualizar estadísticas en la UI
+        function updateStats() {
+            playerHealth.style.width = `${(player.health / player.maxHealth) * 100}%`;
+            enemyHealth.style.width = `${(enemy.health / enemy.maxHealth) * 100}%`;
+            playerManaBar.style.width = `${(player.mana / player.maxMana) * 100}%`;
+            enemyManaBar.style.width = `${(enemy.mana / enemy.maxMana) * 100}%`;
+            
+            playerHealthText.textContent = player.health;
+            enemyHealthText.textContent = enemy.health;
+            playerManaText.textContent = player.mana;
+            enemyManaText.textContent = enemy.mana;
+        }
+
+        // Añadir mensaje al registro de batalla
+        function addToLog(message, type) {
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}-log`;
+            logEntry.textContent = message;
+            battleLog.appendChild(logEntry);
+            battleLog.scrollTop = battleLog.scrollHeight;
+        }
+
+        // Terminar el juego
+        function endGame(playerWon) {
+            gameActive = false;
+            
+            if (playerWon) {
+                endGameMessage.textContent = "¡VICTORIA!";
+                endGameMessage.style.color = "#00ff88";
+                addToLog("¡Has derrotado al archienemigo matemático!", "player");
+            } else {
+                endGameMessage.textContent = "DERROTA";
+                endGameMessage.style.color = "#ff3860";
+                addToLog("El archienemigo te ha vencido...", "enemy");
+            }
+            
+            endGameScreen.style.display = "flex";
+        }
+
+        // Event listeners
+        mainMenuBtn.addEventListener("click", goToMainMenu);
+        menuBtn.addEventListener("click", goToMainMenu);
+        restartBtn.addEventListener("click", initGame);
+        answerInput.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                checkAnswer();
+            }
+        });
+
+        // Función para ir al menú principal
+        function goToMainMenu() {
+            // Cambia esta URL por la de tu página principal
+            window.location.href = "juegos.php"; 
+        }
+
+        // Inicializar MathJax y el juego
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.MathJax) {
+                window.MathJax.startup.promise.then(() => {
+                    initGame();
+                });
+            } else {
+                initGame();
+            }
+        });
+    </script>
+</body>
+</html>

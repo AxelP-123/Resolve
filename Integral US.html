@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+    <title>INTEGRAL US: Edición Galáctica</title>
+    <style>
+        /* ESTILOS GENERALES */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f0c29;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(123, 31, 162, 0.8) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(74, 20, 140, 0.8) 0%, transparent 30%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.7"/></svg>');
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+            height: 100vh;
+        }
+        
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* MENÚ PRINCIPAL */
+        #main-menu {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 12, 41, 0.9);
+            z-index: 100;
+        }
+        
+        .title {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #9b59b6;
+            text-shadow: 0 0 10px #3498db, 
+                         0 0 20px #8e44ad;
+            animation: neonGlow 2s infinite alternate;
+        }
+        
+        @keyframes neonGlow {
+            from { text-shadow: 0 0 10px #3498db, 0 0 20px #8e44ad; }
+            to { text-shadow: 0 0 15px #3498db, 0 0 30px #8e44ad, 0 0 40px #9b59b6; }
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #8e44ad, #3498db);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            margin: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(155, 89, 182, 0.9);
+        }
+        
+        /* PANTALLA DE JUEGO */
+        #game-screen {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #game-ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #9b59b6;
+            z-index: 10;
+        }
+        
+        #task-counter {
+            font-size: 1.2rem;
+            color: #2ecc71;
+        }
+        
+        #reset-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(231, 76, 60, 0.7);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        #reset-btn:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+        
+        /* PERSONAJES */
+        #player {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: #9b59b6;
+            border-radius: 50% 50% 10% 10%;
+            z-index: 5;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.8);
+        }
+        
+        #player::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 10px;
+            top: 15px;
+            left: 5px;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        #impostor {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: #e74c3c;
+            border-radius: 50% 50% 10% 10%;
+            z-index: 4;
+            display: none;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+        
+        #impostor::before {
+            content: '👁️👁️';
+            position: absolute;
+            top: 10px;
+            left: 5px;
+            font-size: 0.8rem;
+        }
+        
+        /* TAREAS */
+        .task {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #f1c40f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px #f39c12;
+            z-index: 3;
+            animation: pulse 2s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); box-shadow: 0 0 10px #f1c40f; }
+            to { transform: scale(1.1); box-shadow: 0 0 30px #f39c12; }
+        }
+        
+        /* PANTALLAS DE TAREA/IMPOSTOR */
+        .popup-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 20;
+        }
+        
+        .popup-container {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #3498db;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.6);
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        #task-display, #impostor-task {
+            font-size: 2rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-family: monospace;
+        }
+        
+        .answer-input {
+            padding: 1rem;
+            font-size: 1.2rem;
+            width: 80%;
+            margin: 1rem 0;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        #feedback {
+            min-height: 2rem;
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        #impostor-screen {
+            background: rgba(231, 76, 60, 0.9);
+        }
+        
+        #impostor-container {
+            animation: shake 0.5s infinite;
+            border-color: #e74c3c;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.6);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        #timer {
+            font-size: 3rem;
+            color: white;
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        /* CONTROLES MÓVILES */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 15;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(52, 152, 219, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            user-select: none;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+            background: rgba(41, 128, 185, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- MENÚ PRINCIPAL -->
+        <div id="main-menu">
+            <h1 class="title">INTEGRAL US</h1>
+            <p style="margin-bottom: 2rem; font-size: 1.2rem; color: #3498db;">EDICIÓN GALÁCTICA</p>
+            <button class="menu-btn" id="start-btn">INICIAR JUEGO</button>
+            <button class="menu-btn" id="howto-btn">INSTRUCCIONES</button>
+            <button class="menu-btn" id="menu-btn" onclick="window.location.href='juegos.php'">MENÚ PRINCIPAL</button> <!-- Botón modificado -->
+        </div>
+        
+        <!-- PANTALLA DE JUEGO -->
+        <div id="game-screen">
+            <div id="game-ui">
+                <div id="task-counter">TAREAS: 0/5</div>
+            </div>
+            
+            <button id="reset-btn">REINICIAR</button>
+            
+            <div id="player"></div>
+            <div id="impostor"></div>
+            
+            <!-- Tareas aparecerán aquí -->
+            
+            <!-- CONTROLES MÓVILES -->
+            <div id="controls">
+                <div class="control-btn" id="up-btn">↑</div>
+                <div class="control-btn" id="left-btn">←</div>
+                <div class="control-btn" id="right-btn">→</div>
+                <div class="control-btn" id="down-btn">↓</div>
+            </div>
+        </div>
+        
+        <!-- PANTALLA DE TAREA -->
+        <div id="task-screen" class="popup-screen">
+            <div class="popup-container">
+                <h2>TAREA MATEMÁTICA</h2>
+                <div id="task-display">∫(3x²) dx = ?</div>
+                <input type="text" id="answer-input" class="answer-input" placeholder="Escribe tu respuesta...">
+                <div id="feedback"></div>
+                <button class="menu-btn" id="submit-btn">ENVIAR</button>
+            </div>
+        </div>
+        
+        <!-- PANTALLA DE IMPOSTOR -->
+        <div id="impostor-screen" class="popup-screen">
+            <div class="popup-container" id="impostor-container">
+                <h2>¡TE ATRAPÓ EL IMPOSTOR!</h2>
+                <p>Resuelve en:</p>
+                <div id="timer">10</div>
+                <div id="impostor-task">∫(2x) dx = ?</div>
+                <input type="text" id="impostor-answer" class="answer-input" placeholder="¡Responde rápido!">
+                <button class="menu-btn" id="impostor-submit">INTENTAR ESCAPAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== VARIABLES DEL JUEGO ==========
+        let playerX = window.innerWidth / 2;
+        let playerY = window.innerHeight / 2;
+        let tasksCompleted = 0;
+        let isImpostorActive = false;
+        let impostorInterval;
+        let impostorTimer;
+        let timeLeft = 10;
+        let currentTasks = [];
+        let currentDifficulty = 1; // 1: Fácil, 2: Medio, 3: Difícil
+        
+        // ========== ELEMENTOS DEL DOM ==========
+        const player = document.getElementById('player');
+        const impostor = document.getElementById('impostor');
+        const gameScreen = document.getElementById('game-screen');
+        const mainMenu = document.getElementById('main-menu');
+        const taskScreen = document.getElementById('task-screen');
+        const impostorScreen = document.getElementById('impostor-screen');
+        const tasksCounter = document.getElementById('task-counter');
+        const taskDisplay = document.getElementById('task-display');
+        const impostorTask = document.getElementById('impostor-task');
+        const timerDisplay = document.getElementById('timer');
+        const feedback = document.getElementById('feedback');
+        
+        // ========== BANCO DE PREGUNTAS ==========
+        const mathTasks = {
+            easy: [
+                { question: "∫(3x²) dx = ?", answer: "x^3+c" },
+                { question: "∫(2x) dx = ?", answer: "x^2+c" },
+                { question: "∫(5) dx = ?", answer: "5x+c" },
+                { question: "∫(eˣ) dx = ?", answer: "e^x+c" },
+                { question: "∫(1) dx = ?", answer: "x+c" }
+            ],
+            medium: [
+                { question: "∫(4x³ + 2x) dx = ?", answer: "x^4+x^2+c" },
+                { question: "∫(3x² + 6x + 2) dx = ?", answer: "x^3+3x^2+2x+c" },
+                { question: "∫(sin(x)) dx = ?", answer: "-cos(x)+c" },
+                { question: "∫(cos(x)) dx = ?", answer: "sin(x)+c" },
+                { question: "∫(1/x) dx = ?", answer: "ln|x|+c" }
+            ],
+            hard: [
+                { question: "∫(eˣ + 3x²) dx = ?", answer: "e^x+x^3+c" },
+                { question: "∫(5cos(x) + 3/x) dx = ?", answer: "5sin(x)+3ln|x|+c" },
+                { question: "∫(2eˣ + 4x³ - 2) dx = ?", answer: "2e^x+x^4-2x+c" },
+                { question: "∫(sec²(x)) dx = ?", answer: "tan(x)+c" },
+                { question: "∫(3eˣ + 2sin(x)) dx = ?", answer: "3e^x-2cos(x)+c" }
+            ]
+        };
+        
+        // ========== EVENT LISTENERS ==========
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('howto-btn').addEventListener('click', showInstructions);
+        document.getElementById('menu-btn').addEventListener('click', returnToMainMenu); // Nuevo evento
+        document.getElementById('reset-btn').addEventListener('click', resetGame);
+        document.getElementById('submit-btn').addEventListener('click', checkTaskAnswer);
+        document.getElementById('impostor-submit').addEventListener('click', checkImpostorAnswer);
+        
+        // Controles táctiles
+        document.getElementById('up-btn').addEventListener('touchstart', () => movePlayer('up'));
+        document.getElementById('left-btn').addEventListener('touchstart', () => movePlayer('left'));
+        document.getElementById('right-btn').addEventListener('touchstart', () => movePlayer('right'));
+        document.getElementById('down-btn').addEventListener('touchstart', () => movePlayer('down'));
+        
+        // Controles de teclado
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup': movePlayer('up'); break;
+                case 'a':
+                case 'arrowleft': movePlayer('left'); break;
+                case 'd':
+                case 'arrowright': movePlayer('right'); break;
+                case 's':
+                case 'arrowdown': movePlayer('down'); break;
+            }
+        });
+        
+        // ========== FUNCIONES DEL JUEGO ==========
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Posición inicial del jugador
+            playerX = window.innerWidth / 2;
+            playerY = window.innerHeight / 2;
+            updatePlayerPosition();
+            
+            // Resetear variables
+            tasksCompleted = 0;
+            tasksCounter.textContent = `TAREAS: ${tasksCompleted}/5`;
+            isImpostorActive = false;
+            
+            // Crear tareas iniciales
+            generateTasks();
+        }
+        
+        function updatePlayerPosition() {
+            player.style.left = `${playerX}px`;
+            player.style.top = `${playerY}px`;
+        }
+        
+        function movePlayer(direction) {
+            const speed = 15;
+            
+            switch(direction) {
+                case 'up': playerY -= speed; break;
+                case 'down': playerY += speed; break;
+                case 'left': playerX -= speed; break;
+                case 'right': playerX += speed; break;
+            }
+            
+            // Limitar movimiento dentro de la pantalla
+            playerX = Math.max(30, Math.min(window.innerWidth - 30, playerX));
+            playerY = Math.max(30, Math.min(window.innerHeight - 30, playerY));
+            
+            updatePlayerPosition();
+            checkTaskCollision();
+            
+            // 5% de probabilidad de que aparezca el impostor
+            if (!isImpostorActive && Math.random() < 0.05) {
+                spawnImpostor();
+            }
+        }
+        
+        function generateTasks() {
+            // Limpiar tareas existentes
+            document.querySelectorAll('.task').forEach(task => task.remove());
+            currentTasks = [];
+            
+            // Mezclar preguntas para mayor variedad
+            const allTasks = [
+                ...mathTasks.easy,
+                ...mathTasks.medium,
+                ...mathTasks.hard
+            ].sort(() => Math.random() - 0.5);
+            
+            // Seleccionar 5 tareas aleatorias
+            for (let i = 0; i < 5; i++) {
+                const task = allTasks[i % allTasks.length];
+                currentTasks.push(task);
+                
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task';
+                taskElement.innerHTML = '📊';
+                taskElement.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
+                taskElement.style.top = `${Math.random() * (window.innerHeight - 200) + 100}px`;
+                taskElement.dataset.taskId = i;
+                gameScreen.appendChild(taskElement);
+            }
+        }
+        
+        function checkTaskCollision() {
+            document.querySelectorAll('.task').forEach(task => {
+                const taskRect = task.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                
+                if (isColliding(taskRect, playerRect)) {
+                    startTask(task.dataset.taskId);
+                    task.remove();
+                }
+            });
+        }
+        
+        function isColliding(rect1, rect2) {
+            return !(
+                rect1.right < rect2.left || 
+                rect1.left > rect2.right || 
+                rect1.bottom < rect2.top || 
+                rect1.top > rect2.bottom
+            );
+        }
+        
+        function startTask(taskId) {
+            gameScreen.style.display = 'none';
+            taskScreen.style.display = 'flex';
+            
+            const task = currentTasks[taskId];
+            taskDisplay.textContent = task.question;
+            taskDisplay.dataset.answer = task.answer;
+            document.getElementById('answer-input').value = '';
+            feedback.textContent = '';
+        }
+        
+        function checkTaskAnswer() {
+            const answer = document.getElementById('answer-input').value.trim().toLowerCase();
+            const correctAnswer = taskDisplay.dataset.answer;
+            
+            if (answer === correctAnswer) {
+                feedback.textContent = '✅ ¡Correcto! Tarea completada.';
+                feedback.style.color = '#2ecc71';
+                tasksCompleted++;
+                tasksCounter.textContent = `TAREAS: ${tasksCompleted}/5`;
+                
+                setTimeout(() => {
+                    taskScreen.style.display = 'none';
+                    gameScreen.style.display = 'block';
+                    
+                    if (tasksCompleted >= 5) {
+                        setTimeout(() => {
+                            alert('🎉 ¡MISIÓN COMPLETADA!\nHas reparado la nave espacial.');
+                            resetGame();
+                        }, 500);
+                    }
+                }, 1000);
+            } else {
+                feedback.textContent = '❌ Incorrecto. Intenta de nuevo.';
+                feedback.style.color = '#e74c3c';
+            }
+        }
+        
+        function spawnImpostor() {
+            isImpostorActive = true;
+            impostor.style.display = 'block';
+            impostor.style.left = `${-100}px`;
+            impostor.style.top = `${playerY}px`;
+            
+            impostorInterval = setInterval(() => {
+                const impostorX = parseInt(impostor.style.left);
+                const impostorY = parseInt(impostor.style.top);
+                
+                // Movimiento hacia el jugador
+                if (impostorX < playerX - 30) {
+                    impostor.style.left = `${impostorX + 4}px`;
+                } else if (impostorX > playerX + 30) {
+                    impostor.style.left = `${impostorX - 4}px`;
+                }
+                
+                if (impostorY < playerY - 30) {
+                    impostor.style.top = `${impostorY + 4}px`;
+                } else if (impostorY > playerY + 30) {
+                    impostor.style.top = `${impostorY - 4}px`;
+                }
+                
+                // Verificar colisión
+                if (
+                    Math.abs(impostorX - playerX) < 50 && 
+                    Math.abs(impostorY - playerY) < 50
+                ) {
+                    clearInterval(impostorInterval);
+                    caughtByImpostor();
+                }
+                
+                // Si el jugador se escapa
+                if (Math.abs(impostorX - playerX) > 300) {
+                    clearInterval(impostorInterval);
+                    impostor.style.display = 'none';
+                    isImpostorActive = false;
+                }
+            }, 50);
+        }
+        
+        function caughtByImpostor() {
+            isImpostorActive = false;
+            impostor.style.display = 'none';
+            gameScreen.style.display = 'none';
+            impostorScreen.style.display = 'flex';
+            
+            // Seleccionar una pregunta aleatoria de dificultad media
+            const randomTask = mathTasks.medium[Math.floor(Math.random() * mathTasks.medium.length)];
+            impostorTask.textContent = randomTask.question;
+            impostorTask.dataset.answer = randomTask.answer;
+            document.getElementById('impostor-answer').value = '';
+            
+            // Temporizador
+            timeLeft = 10;
+            timerDisplay.textContent = timeLeft;
+            
+            impostorTimer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(impostorTimer);
+                    gameOver();
+                }
+            }, 1000);
+        }
+        
+        function checkImpostorAnswer() {
+            clearInterval(impostorTimer);
+            const answer = document.getElementById('impostor-answer').value.trim().toLowerCase();
+            const correctAnswer = impostorTask.dataset.answer;
+            
+            if (answer === correctAnswer) {
+                alert('¡Escapaste del impostor!');
+                impostorScreen.style.display = 'none';
+                gameScreen.style.display = 'block';
+            } else {
+                gameOver();
+            }
+        }
+        
+        function gameOver() {
+            // Efecto visual de explosión
+            const explosion = document.createElement('div');
+            explosion.style.position = 'absolute';
+            explosion.style.width = '100px';
+            explosion.style.height = '100px';
+            explosion.style.background = 'radial-gradient(circle, #f1c40f 0%, #e74c3c 70%, transparent 100%)';
+            explosion.style.borderRadius = '50%';
+            explosion.style.left = `${playerX - 50}px`;
+            explosion.style.top = `${playerY - 50}px`;
+            explosion.style.zIndex = '15';
+            explosion.style.animation = 'explode 0.5s forwards';
+            
+            gameScreen.appendChild(explosion);
+            
+            setTimeout(() => {
+                alert('💀 ¡El impostor te eliminó!');
+                resetGame();
+            }, 500);
+        }
+        
+        function resetGame() {
+            // Detener todos los intervalos
+            clearInterval(impostorInterval);
+            clearInterval(impostorTimer);
+            
+            // Ocultar todas las pantallas excepto el menú
+            gameScreen.style.display = 'none';
+            taskScreen.style.display = 'none';
+            impostorScreen.style.display = 'none';
+            mainMenu.style.display = 'flex';
+            
+            // Limpiar explosiones
+            document.querySelectorAll('[style*="radial-gradient"]').forEach(el => el.remove());
+            
+            // Aumentar dificultad para la próxima partida
+            currentDifficulty = Math.min(currentDifficulty + 1, 3);
+        }
+        
+        // Nueva función para volver al menú principal
+        function returnToMainMenu() {
+            // Cambia esta URL por la de tu página web
+            window.location.href = "juegos.php"; 
+            // O si quieres que solo regrese al menú del juego:
+            // resetGame();
+        }
+        
+        function showInstructions() {
+            alert(`📖 INSTRUCCIONES:
+            
+1. 🕹️ CONTROLES:
+   - Usa WASD o flechas para moverte
+   - En móvil: usa los botones táctiles
+
+2. 🎯 OBJETIVO:
+   - Completa 5 tareas matemáticas
+   - Resuelve integrales correctamente
+
+3. 👁️ PELIGRO:
+   - El impostor rojo te perseguirá
+   - Si te atrapa, resuelve en 10 segundos
+
+4. 🔄 REINICIO:
+   - Puedes reiniciar en cualquier momento`);
+        }
+    </script>
+</body>
+</html>

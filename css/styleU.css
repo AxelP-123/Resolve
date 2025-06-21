@@ -1,0 +1,48 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 150px); /* 4 columnas de 150px de ancho */
+  grid-gap: 10px;
+}
+
+.card {
+  width: 150px;
+  height: 120px;
+  background-color: #4b1c71;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1em;
+  border: 2px solid #dbb6ee;
+  border-radius: 5px;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.selected {
+  box-shadow: 0 0 10px 5px #b57edc;
+}
+
+.matched {
+  background-color: #dbb6ee;
+  border-color: #dbb6ee;
+}
+
+#result-message {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.correct {
+  color: green;
+}
+
+.incorrect {
+  color: red;
+}

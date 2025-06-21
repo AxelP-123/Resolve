@@ -1,0 +1,159 @@
+.chat-bubble {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7a00cc, #50008b);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(122, 0, 204, 0.4);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+            color: white;
+        }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            padding: 15px;
+            z-index: 1000;
+            border: 2px solid #7a00cc;
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .btn-enviar {
+            background: #50008b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-enviar:hover {
+            background: #7a00cc;
+        }
+
+        .respuesta-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #7a00cc;
+        }
+
+        .duda-text, .respuesta-text {
+            color: #212529;
+            margin: 8px 0;
+        }
+
+        .duda-header {
+            font-weight: bold;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .duda-date {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .edit-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+
+        .edit-btn:hover {
+            background: #5a6268;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .duda{
+            color: black;
+            margin-bottom: 15px;
+        }
+
+        .search-container {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 30px 8px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .duda-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 15px;
+        }

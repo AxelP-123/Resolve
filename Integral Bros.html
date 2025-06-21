@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+    <title>Integral Bros 🍄</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #E74C3C;
+            --secondary: #3498DB;
+            --accent: #F1C40F;
+            --dark: #2C3E50;
+            --light: #ECF0F1;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-shadow: 3px 3px 0 var(--dark);
+            color: var(--light);
+        }
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+            border: 4px solid var(--dark);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to bottom, #8B4513, #A0522D);
+        }
+        .player {
+            position: absolute;
+            bottom: 60px;
+            left: 50px;
+            width: 50px;
+            height: 70px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 70"><rect x="15" y="20" width="20" height="30" fill="%23E74C3C"/><circle cx="25" cy="15" r="15" fill="%23E74C3C"/><circle cx="15" cy="10" r="5" fill="%23FFFFFF"/><circle cx="35" cy="10" r="5" fill="%23FFFFFF"/><rect x="20" y="50" width="5" height="20" fill="%233498DB"/><rect x="25" y="50" width="5" height="20" fill="%233498DB"/></svg>') no-repeat;
+            transition: left 0.3s, bottom 0.3s;
+            z-index: 10;
+        }
+        .obstacle {
+            position: absolute;
+            bottom: 60px;
+            right: -100px;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><rect x="10" y="10" width="40" height="40" fill="%232C3E50"/><rect x="15" y="15" width="30" height="30" fill="%23E74C3C"/></svg>') no-repeat;
+        }
+        .question-box {
+            position: absolute;
+            bottom: 120px;
+            right: 200px;
+            width: 40px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" fill="%23F1C40F"/><text x="20" y="25" font-family="Arial" font-size="20" text-anchor="middle" fill="%232C3E50">?</text></svg>') no-repeat;
+            animation: float 2s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .question-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid var(--accent);
+            z-index: 100;
+            display: none;
+            width: 80%;
+        }
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option {
+            background: var(--secondary);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .option:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+        .hint {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid var(--accent);
+            display: none;
+            max-width: 80%;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--dark);
+            color: white;
+        }
+        .btn-menu {
+            background: var(--accent);
+            color: var(--dark);
+        }
+        .power-up {
+            position: absolute;
+            font-size: 1.5em;
+            animation: powerUp 2s forwards;
+            opacity: 0;
+            z-index: 20;
+        }
+        @keyframes powerUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+        .score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .menu-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 2px solid var(--accent);
+            cursor: pointer;
+            z-index: 200;
+        }
+        
+        /* Estilos para ecuaciones matemáticas */
+        .math-container {
+            display: inline-block;
+            margin: 0 auto;
+        }
+        mjx-container {
+            display: inline-block !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu-btn" id="menuBtn" onclick="window.location.href='juegos.php'">🏠 Menú Principal</div>
+        <h1>Integral Bros 🍄</h1>
+        
+        <div class="score">🏆 Puntos: <span id="score">0</span></div>
+        
+        <div class="game-container">
+            <div class="ground"></div>
+            <div class="player" id="player"></div>
+            <div class="obstacle" id="obstacle"></div>
+            <div class="question-box" id="questionBox"></div>
+            
+            <div class="hint" id="hint">
+                <p id="hintText"></p>
+            </div>
+            
+            <div class="question-panel" id="questionPanel">
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">🚀 Iniciar Juego</button>
+            <button class="btn btn-secondary" id="restartBtn">🔄 Reiniciar</button>
+            <button class="btn btn-menu" id="menuBtn2" onclick="window.location.href='juegos.php'">🏠 Menú Principal</button>
+        </div>
+    </div>
+
+    <script>
+        // Banco de preguntas
+        const questions = [
+            {
+                question: "\\int x^2 \\, dx",
+                options: [
+                    "\\frac{x^3}{3} + C",
+                    "x^3 + C",
+                    "2x + C",
+                    "\\frac{x^2}{2} + C"
+                ],
+                answer: 0,
+                hint: "Recuerda la regla de la potencia: ∫xⁿ dx = xⁿ⁺¹/(n+1) + C"
+            },
+            {
+                question: "\\int e^x \\, dx",
+                options: [
+                    "e^x + C",
+                    "\\ln x + C",
+                    "x e^x + C",
+                    "e^{x+1} + C"
+                ],
+                answer: 0,
+                hint: "La derivada de eˣ es eˣ, por lo que..."
+            },
+            {
+                question: "\\int \\cos x \\, dx",
+                options: [
+                    "\\sin x + C",
+                    "-\\sin x + C",
+                    "\\cos^2 x + C",
+                    "\\tan x + C"
+                ],
+                answer: 0,
+                hint: "¿Qué función al derivarla da cos x?"
+            },
+            {
+                question: "\\int \\frac{1}{x} \\, dx",
+                options: [
+                    "\\ln|x| + C",
+                    "\\frac{1}{x^2} + C",
+                    "x + C",
+                    "\\ln x + C"
+                ],
+                answer: 0,
+                hint: "¿Qué función al derivarla da 1/x?"
+            },
+            {
+                question: "\\int \\sin x \\, dx",
+                options: [
+                    "-\\cos x + C",
+                    "\\cos x + C",
+                    "\\sin^2 x + C",
+                    "\\frac{\\sin^2 x}{2} + C"
+                ],
+                answer: 0,
+                hint: "Deriva cada opción para ver cuál coincide con sen x"
+            }
+        ];
+
+        // Variables del juego
+        let score = 0;
+        let gameActive = false;
+        let playerJumping = false;
+        let powerUpActive = false;
+        let currentQuestion;
+        let obstacleInterval;
+        let questionBoxInterval;
+        let gameSpeed = 5;
+
+        // Elementos del DOM
+        const player = document.getElementById('player');
+        const obstacle = document.getElementById('obstacle');
+        const questionBox = document.getElementById('questionBox');
+        const questionPanel = document.getElementById('questionPanel');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const hint = document.getElementById('hint');
+        const hintText = document.getElementById('hintText');
+        const scoreEl = document.getElementById('score');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const menuBtn2 = document.getElementById('menuBtn2');
+
+        // Función para renderizar ecuaciones con MathJax
+        function renderMath(content) {
+            const container = document.createElement('div');
+            container.className = 'math-container';
+            
+            // Usamos \( \) para modo inline o \[ \] para display mode según el tamaño
+            const isLarge = content.includes('frac') || content.includes('int');
+            const wrapper = isLarge ? `\\[${content}\\]` : `\\(${content}\\)`;
+            
+            container.innerHTML = wrapper;
+            
+            // Procesar con MathJax si está disponible
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([container]).catch(err => console.log('Error al renderizar MathJax:', err));
+            }
+            
+            return container;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        menuBtn.addEventListener('click', goToMainMenu);
+        menuBtn2.addEventListener('click', goToMainMenu);
+        document.addEventListener('keydown', handleKeyPress);
+
+        // Función para ir al menú principal
+        function goToMainMenu() {
+            // Cambia esta URL por la de tu página principal
+            window.location.href = "juegos.php"; 
+        }
+
+        // Funciones del juego
+        function startGame() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            score = 0;
+            scoreEl.textContent = score;
+            hint.style.display = 'none';
+            
+            // Posición inicial
+            player.style.left = '50px';
+            player.style.bottom = '60px';
+            obstacle.style.right = '-100px';
+            questionBox.style.right = '200px';
+            
+            // Iniciar movimiento de obstáculos
+            obstacleInterval = setInterval(moveObstacle, 20);
+            questionBoxInterval = setInterval(moveQuestionBox, 20);
+            
+            // Generar primera pregunta
+            setTimeout(showRandomQuestion, 3000);
+        }
+
+        function restartGame() {
+            clearInterval(obstacleInterval);
+            clearInterval(questionBoxInterval);
+            questionPanel.style.display = 'none';
+            hint.style.display = 'none';
+            gameActive = false;
+            startGame();
+        }
+
+        function moveObstacle() {
+            if (!gameActive) return;
+            
+            const obstacleRight = parseInt(obstacle.style.right) || -100;
+            const newRight = obstacleRight + gameSpeed;
+            obstacle.style.right = `${newRight}px`;
+            
+            // Si el obstáculo sale de la pantalla
+            if (newRight > 800) {
+                obstacle.style.right = '-100px';
+                score += 10;
+                scoreEl.textContent = score;
+            }
+            
+            // Detección de colisión
+            checkCollision();
+        }
+
+        function moveQuestionBox() {
+            if (!gameActive) return;
+            
+            const boxRight = parseInt(questionBox.style.right) || 200;
+            const newRight = boxRight + gameSpeed;
+            questionBox.style.right = `${newRight}px`;
+            
+            // Si la caja sale de la pantalla
+            if (newRight > 800) {
+                questionBox.style.right = `${-100 - Math.random() * 300}px`;
+            }
+            
+            // Detección de colisión con la caja
+            checkBoxCollision();
+        }
+
+        function checkCollision() {
+            const playerRect = player.getBoundingClientRect();
+            const obstacleRect = obstacle.getBoundingClientRect();
+            
+            if (
+                playerRect.right > obstacleRect.left &&
+                playerRect.left < obstacleRect.right &&
+                playerRect.bottom > obstacleRect.top &&
+                !playerJumping &&
+                !powerUpActive
+            ) {
+                // Colisión detectada
+                gameOver();
+            }
+        }
+
+        function checkBoxCollision() {
+            const playerRect = player.getBoundingClientRect();
+            const boxRect = questionBox.getBoundingClientRect();
+            
+            if (
+                playerRect.right > boxRect.left &&
+                playerRect.left < boxRect.right &&
+                playerRect.bottom > boxRect.top &&
+                playerRect.top < boxRect.bottom
+            ) {
+                // Colisión con la caja de pregunta
+                questionBox.style.right = '-100px';
+                showRandomQuestion();
+            }
+        }
+
+        function showRandomQuestion() {
+            if (!gameActive) return;
+            
+            // Pausar el juego
+            clearInterval(obstacleInterval);
+            clearInterval(questionBoxInterval);
+            
+            // Seleccionar pregunta aleatoria
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            currentQuestion = questions[randomIndex];
+            
+            // Mostrar pregunta
+            questionEl.innerHTML = '';
+            questionEl.appendChild(renderMath(currentQuestion.question));
+            
+            optionsEl.innerHTML = '';
+            
+            // Mezclar opciones
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+            
+            // Crear botones de opciones
+            shuffledOptions.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.appendChild(renderMath(option));
+                button.addEventListener('click', () => checkAnswer(option));
+                optionsEl.appendChild(button);
+            });
+            
+            // Mostrar panel
+            questionPanel.style.display = 'block';
+        }
+
+        function checkAnswer(selectedOption) {
+            if (!gameActive) return;
+            
+            if (selectedOption === currentQuestion.options[currentQuestion.answer]) {
+                // Respuesta correcta
+                score += 50;
+                scoreEl.textContent = score;
+                
+                // Power-up por 10 segundos
+                activatePowerUp();
+                
+                // Mostrar feedback
+                const powerUpFeedback = document.createElement('div');
+                powerUpFeedback.className = 'power-up';
+                powerUpFeedback.textContent = '¡Power-up! +10s';
+                powerUpFeedback.style.left = player.style.left;
+                powerUpFeedback.style.top = '100px';
+                document.querySelector('.game-container').appendChild(powerUpFeedback);
+                
+                setTimeout(() => {
+                    powerUpFeedback.remove();
+                }, 2000);
+            } else {
+                // Mostrar pista
+                hintText.textContent = currentQuestion.hint;
+                hint.style.display = 'block';
+                
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Reanudar juego
+            questionPanel.style.display = 'none';
+            obstacleInterval = setInterval(moveObstacle, 20);
+            questionBoxInterval = setInterval(moveQuestionBox, 20);
+        }
+
+        function activatePowerUp() {
+            powerUpActive = true;
+            player.style.filter = 'brightness(1.2) drop-shadow(0 0 5px yellow)';
+            gameSpeed = 2; // Reduce la velocidad de los obstáculos
+            
+            setTimeout(() => {
+                powerUpActive = false;
+                player.style.filter = '';
+                gameSpeed = 5;
+            }, 10000); // 10 segundos
+        }
+
+        function jump() {
+            if (playerJumping || !gameActive) return;
+            
+            playerJumping = true;
+            let jumpHeight = 0;
+            let jumpUp = true;
+            const jumpInterval = setInterval(() => {
+                if (jumpUp) {
+                    jumpHeight += 5;
+                    if (jumpHeight >= 100) jumpUp = false;
+                } else {
+                    jumpHeight -= 5;
+                    if (jumpHeight <= 0) {
+                        jumpHeight = 0;
+                        clearInterval(jumpInterval);
+                        playerJumping = false;
+                    }
+                }
+                
+                player.style.bottom = `${60 + jumpHeight}px`;
+            }, 20);
+        }
+
+        function handleKeyPress(e) {
+            if (e.code === 'Space') {
+                jump();
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            clearInterval(obstacleInterval);
+            clearInterval(questionBoxInterval);
+            
+            // Mostrar mensaje de fin de juego
+            const gameOverMsg = document.createElement('div');
+            gameOverMsg.style.position = 'absolute';
+            gameOverMsg.style.top = '50%';
+            gameOverMsg.style.left = '50%';
+            gameOverMsg.style.transform = 'translate(-50%, -50%)';
+            gameOverMsg.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            gameOverMsg.style.padding = '20px';
+            gameOverMsg.style.borderRadius = '10px';
+            gameOverMsg.style.border = '3px solid var(--accent)';
+            gameOverMsg.style.zIndex = '100';
+            gameOverMsg.style.textAlign = 'center';
+            gameOverMsg.innerHTML = `
+                <h2>💀 Game Over!</h2>
+                <p>Puntuación final: ${score}</p>
+                <button class="btn btn-primary" id="playAgainBtn" style="margin-top: 10px;">Jugar de nuevo</button>
+            `;
+            
+            document.querySelector('.game-container').appendChild(gameOverMsg);
+            
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                gameOverMsg.remove();
+                restartGame();
+            });
+        }
+
+        // Inicializar MathJax al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.MathJax) {
+                window.MathJax.startup.promise.then(() => {
+                    console.log('MathJax está listo');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

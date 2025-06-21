@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Construcción con Integrales</title>
+    <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f3e5f5;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #game {
+            background: white;
+            border: 5px dashed #9c27b0;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.4);
+            position: relative;
+        }
+        h1 {
+            color: #7b1fa2;
+            text-shadow: 2px 2px 0 #e1bee7;
+        }
+        #mission {
+            background: #e1bee7;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        #construction-area, #target-area {
+            display: inline-block;
+            width: 45%;
+            min-height: 200px;
+            margin: 10px;
+            vertical-align: top;
+            background: #ede7f6;
+            border: 3px dashed #7e57c2;
+            border-radius: 10px;
+            padding: 10px;
+            position: relative;
+        }
+        .block {
+            width: 30px;
+            height: 30px;
+            background: #7b1fa2;
+            border: 2px solid #4a148c;
+            border-radius: 3px;
+            margin: 3px;
+            cursor: move;
+            position: absolute;
+            transition: transform 0.2s;
+        }
+        .block:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .target-block {
+            background: #ab47bc;
+            opacity: 0.5;
+            position: static;
+        }
+        #integral-container {
+            margin: 20px 0;
+        }
+        #options-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .option {
+            background: #ab47bc;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: grab;
+            user-select: none;
+        }
+        .option:hover {
+            background: #8e24aa;
+        }
+        #feedback {
+            min-height: 25px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .correct {
+            color: #2e7d32;
+        }
+        .incorrect {
+            color: #c62828;
+        }
+        #blocks-counter {
+            font-size: 18px;
+            color: #7b1fa2;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #9c27b0;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #7b1fa2;
+            transform: translateY(-2px);
+        }
+        #drop-zone {
+            min-height: 50px;
+            border: 2px dotted #7e57c2;
+            border-radius: 5px;
+            background: #d1c4e9;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .drag-hint {
+            color: #7b1fa2;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        #reward {
+            font-size: 20px;
+            color: #ff9800;
+            font-weight: bold;
+            height: 30px;
+            margin: 10px;
+        }
+        #back-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #7b1fa2;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #back-button:hover {
+            background: #6a1b9a;
+        }
+        #back-button::before {
+            content: "←";
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <!-- Botón de Regreso (cambia la URL por la tuya) -->
+        <button id="back-button" onclick="window.location.href='juegos.php'">Regresar</button>
+       
+        <h1>🧩 Construcción con Integrales</h1>
+        
+        <div id="mission">
+            <h3>Misión: <span id="mission-name">Casa</span></h3>
+            <div id="target-area"></div>
+        </div>
+        
+        <div id="integral-container">
+            <h3>Resuelve:</h3>
+            <div id="problem">∫ x² dx = ?</div>
+            
+            <div id="options-container"></div>
+            
+            <div id="drop-zone">¡Arrastra aquí la respuesta!</div>
+            <p class="drag-hint">(Haz clic y arrastra una opción)</p>
+            
+            <div id="feedback"></div>
+            <div id="reward"></div>
+            <button id="check-btn">Verificar</button>
+            <button id="next-btn" style="display:none;">Siguiente</button>
+        </div>
+        
+        <div>
+            <p id="blocks-counter">Bloques disponibles: <span id="blocks-count">0</span></p>
+            <h3>Zona de Construcción:</h3>
+            <div id="construction-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATOS DEL JUEGO =====
+        const missions = [
+            {
+                name: "Casa",
+                target: [
+                    [0,1,0],
+                    [1,1,1],
+                    [1,0,1]
+                ],
+                reward: "¡Obtienes un cofre del tesoro! 🎁"
+            },
+            {
+                name: "Torre",
+                target: [
+                    [1],
+                    [1],
+                    [1],
+                    [1]
+                ],
+                reward: "¡Desbloqueas diamantes! 💎"
+            },
+            {
+                name: "Pirámide",
+                target: [
+                    [0,0,1,0,0],
+                    [0,1,1,1,0],
+                    [1,1,1,1,1]
+                ],
+                reward: "¡Ganas una estrella dorada! ⭐"
+            }
+        ];
+
+        const integrals = [
+            { problem: "∫ x² dx", answer: "x³/3 + C", options: ["x³/3 + C", "x²/2 + C", "2x + C"] },
+            { problem: "∫ cos(x) dx", answer: "sen(x) + C", options: ["sen(x) + C", "-sen(x) + C", "cos(x) + C"] },
+            { problem: "∫ eˣ dx", answer: "eˣ + C", options: ["eˣ + C", "ln(x) + C", "x·eˣ + C"] },
+            { problem: "∫ 1/x dx", answer: "ln|x| + C", options: ["ln|x| + C", "1/x² + C", "-1/x² + C"] },
+            { problem: "∫ 3 dx", answer: "3x + C", options: ["3x + C", "3 + C", "x³ + C"] }
+        ];
+
+        // ===== VARIABLES =====
+        let currentMission = 0;
+        let currentIntegral = 0;
+        let earnedBlocks = 0;
+        let placedBlocks = 0;
+        let draggedOption = null;
+        let isDraggingBlock = false;
+        let draggedBlockElement = null;
+
+        // ===== ELEMENTOS DEL DOM =====
+        const missionNameEl = document.getElementById('mission-name');
+        const targetAreaEl = document.getElementById('target-area');
+        const problemEl = document.getElementById('problem');
+        const optionsContainerEl = document.getElementById('options-container');
+        const dropZoneEl = document.getElementById('drop-zone');
+        const feedbackEl = document.getElementById('feedback');
+        const rewardEl = document.getElementById('reward');
+        const checkBtnEl = document.getElementById('check-btn');
+        const nextBtnEl = document.getElementById('next-btn');
+        const blocksCountEl = document.getElementById('blocks-count');
+        const constructionAreaEl = document.getElementById('construction-area');
+
+        // ===== FUNCIONES =====
+        function loadMission() {
+            missionNameEl.textContent = missions[currentMission].name;
+            targetAreaEl.innerHTML = '';
+            rewardEl.textContent = '';
+            
+            // Dibujar figura objetivo
+            const blockSize = 30;
+            const targetWidth = missions[currentMission].target[0].length * blockSize;
+            targetAreaEl.style.width = targetWidth + 'px';
+
+            missions[currentMission].target.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell) {
+                        const block = document.createElement('div');
+                        block.className = 'block target-block';
+                        block.style.position = 'static';
+                        block.style.display = 'inline-block';
+                        block.style.margin = '3px';
+                        targetAreaEl.appendChild(block);
+                    }
+                });
+                targetAreaEl.appendChild(document.createElement('br'));
+            });
+        }
+
+        function loadIntegral() {
+            problemEl.textContent = integrals[currentIntegral].problem + " = ?";
+            optionsContainerEl.innerHTML = '';
+            dropZoneEl.textContent = '¡Arrastra aquí la respuesta!';
+            dropZoneEl.style.backgroundColor = '#d1c4e9';
+            feedbackEl.textContent = '';
+            nextBtnEl.style.display = 'none';
+            draggedOption = null;
+            
+            integrals[currentIntegral].options.forEach(option => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.textContent = option;
+                optionEl.draggable = true;
+                
+                optionEl.addEventListener('dragstart', (e) => {
+                    draggedOption = option;
+                    e.dataTransfer.setData('text/plain', option);
+                });
+                
+                optionsContainerEl.appendChild(optionEl);
+            });
+        }
+
+        function setupDragAndDrop() {
+            // Zona para soltar respuestas
+            dropZoneEl.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZoneEl.style.backgroundColor = '#b39ddb';
+            });
+            
+            dropZoneEl.addEventListener('dragleave', () => {
+                dropZoneEl.style.backgroundColor = '#d1c4e9';
+            });
+            
+            dropZoneEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZoneEl.style.backgroundColor = '#d1c4e9';
+                if (draggedOption) {
+                    dropZoneEl.textContent = draggedOption;
+                }
+            });
+            
+            // Zona de construcción
+            constructionAreaEl.addEventListener('dragover', (e) => {
+                if (isDraggingBlock) e.preventDefault();
+            });
+            
+            constructionAreaEl.addEventListener('drop', (e) => {
+                if (isDraggingBlock && draggedBlockElement) {
+                    e.preventDefault();
+                    
+                    // Posicionar el bloque donde se soltó
+                    const rect = constructionAreaEl.getBoundingClientRect();
+                    const x = e.clientX - rect.left - 15;
+                    const y = e.clientY - rect.top - 15;
+                    
+                    draggedBlockElement.style.left = x + 'px';
+                    draggedBlockElement.style.top = y + 'px';
+                    draggedBlockElement.style.position = 'absolute';
+                    
+                    placedBlocks++;
+                    checkMissionCompletion();
+                }
+            });
+        }
+
+        function addBlocksToConstruction(count) {
+            for (let i = 0; i < count; i++) {
+                const block = document.createElement('div');
+                block.className = 'block';
+                
+                // Posición aleatoria inicial
+                const x = Math.random() * (constructionAreaEl.offsetWidth - 30);
+                const y = Math.random() * (constructionAreaEl.offsetHeight - 30);
+                
+                block.style.left = x + 'px';
+                block.style.top = y + 'px';
+                
+                // Hacer el bloque arrastrable
+                block.draggable = true;
+                block.addEventListener('dragstart', (e) => {
+                    isDraggingBlock = true;
+                    draggedBlockElement = block;
+                    e.dataTransfer.setData('text/plain', 'block');
+                    setTimeout(() => {
+                        block.style.opacity = '0.4';
+                    }, 0);
+                });
+                
+                block.addEventListener('dragend', () => {
+                    isDraggingBlock = false;
+                    draggedBlockElement = null;
+                    block.style.opacity = '1';
+                });
+                
+                constructionAreaEl.appendChild(block);
+            }
+        }
+
+        function checkAnswer() {
+            const userAnswer = dropZoneEl.textContent;
+            const correctAnswer = integrals[currentIntegral].answer;
+            
+            if (userAnswer === correctAnswer) {
+                feedbackEl.textContent = "✅ ¡Correcto! +3 bloques";
+                feedbackEl.className = "correct";
+                earnedBlocks += 3;
+                blocksCountEl.textContent = earnedBlocks;
+                nextBtnEl.style.display = 'inline-block';
+                
+                // Añadir bloques automáticamente a la zona de construcción
+                addBlocksToConstruction(3);
+            } else {
+                feedbackEl.textContent = "❌ Incorrecto. La respuesta es: " + correctAnswer;
+                feedbackEl.className = "incorrect";
+            }
+        }
+
+        function checkMissionCompletion() {
+            if (placedBlocks >= countTargetBlocks()) {
+                rewardEl.textContent = missions[currentMission].reward;
+                setTimeout(() => {
+                    if (confirm("¡Misión completada! ¿Quieres pasar a la siguiente?")) {
+                        currentMission = (currentMission + 1) % missions.length;
+                        placedBlocks = 0;
+                        constructionAreaEl.innerHTML = '';
+                        loadMission();
+                    }
+                }, 1000);
+            }
+        }
+
+        function countTargetBlocks() {
+            return missions[currentMission].target.flat().filter(x => x).length;
+        }
+
+        // ===== INICIALIZACIÓN =====
+        function initGame() {
+            loadMission();
+            loadIntegral();
+            setupDragAndDrop();
+            
+            checkBtnEl.addEventListener('click', checkAnswer);
+            
+            nextBtnEl.addEventListener('click', () => {
+                currentIntegral = (currentIntegral + 1) % integrals.length;
+                loadIntegral();
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

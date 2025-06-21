@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrera Algebraica 🏁</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --player-color: #00ff88;
+            --cpu-color: #ff4d4d;
+            --track-color: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: 
+                linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff00cc, #3333ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(255, 0, 204, 0.3);
+        }
+        .track {
+            height: 150px;
+            background: 
+                linear-gradient(90deg, 
+                    var(--track-color) 0%, 
+                    rgba(255, 255, 255, 0.3) 50%, 
+                    var(--track-color) 100%),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(255, 255, 255, 0.1) 10px,
+                    rgba(255, 255, 255, 0.1) 20px
+                );
+            border-radius: 10px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .car {
+            width: 80px;
+            height: 50px;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            transition: left 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+        #playerCar {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill="%2300ff88" d="M10 30L30 10H70L90 30V50H70V40H30V50H10z"/><circle cx="25" cy="50" r="10" fill="black"/><circle cx="75" cy="50" r="10" fill="black"/></svg>') no-repeat;
+            color: var(--player-color);
+        }
+        #cpuCar {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path fill="%23ff4d4d" d="M10 30L30 10H70L90 30V50H70V40H30V50H10z"/><circle cx="25" cy="50" r="10" fill="black"/><circle cx="75" cy="50" r="10" fill="black"/></svg>') no-repeat;
+            color: var(--cpu-color);
+        }
+        .question {
+            font-size: 1.8em;
+            margin: 30px 0;
+            min-height: 80px;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-restart {
+            background: linear-gradient(90deg, #ff00cc, #3333ff);
+            color: white;
+        }
+        .btn-home {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid white;
+        }
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+            transition: all 0.5s;
+        }
+        .correct {
+            color: var(--player-color);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.7);
+        }
+        .incorrect {
+            color: var(--cpu-color);
+            text-shadow: 0 0 10px rgba(255, 77, 77, 0.7);
+        }
+        .finish-line {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            background: repeating-linear-gradient(
+                0deg,
+                white,
+                white 10px,
+                black 10px,
+                black 20px
+            );
+        }
+        @keyframes engineBoost {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(0); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏁 Carrera Algebraica 🧠</h1>
+        <p>Resuelve integrales para avanzar. ¡El primero en llegar a la meta gana!</p>
+        
+        <div class="track">
+            <div class="finish-line"></div>
+            <div class="car" id="playerCar">🚗</div>
+            <div class="car" id="cpuCar">🤖</div>
+        </div>
+        
+        <div class="stats">
+            <div>👤 Jugador: <span id="playerScore">0</span> pts</div>
+            <div>🤖 CPU: <span id="cpuScore">0</span> pts</div>
+        </div>
+        
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        
+        <div class="controls">
+            <button class="btn btn-restart" id="restartBtn">🔄 Reiniciar Carrera</button>
+            <button class="btn btn-home" id="homeBtn" onclick="redirect()">🏠 Volver al Menú</button>
+            <script>
+        function redirect() {
+            location.replace("Juegos.php");
+        }
+    </script>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        // Banco de preguntas con respuestas en posiciones aleatorias
+        const questions = [
+            {
+                question: "\\[ \\int (3x^2 + 2x) \\, dx \\]",
+                options: [
+                    "\\[ x^3 + x^2 + C \\]",
+                    "\\[ 6x + 2 + C \\]",
+                    "\\[ x^3 + C \\]",
+                    "\\[ \\frac{x^3}{3} + x^2 + C \\]"
+                ],
+                answer: 0
+            },
+            {
+                question: "\\[ \\int e^{2x} \\, dx \\]",
+                options: [
+                    "\\[ \\frac{1}{2}e^{2x} + C \\]",
+                    "\\[ 2e^{2x} + C \\]",
+                    "\\[ e^{2x} + C \\]",
+                    "\\[ \\frac{e^{3x}}{3} + C \\]"
+                ],
+                answer: 0
+            },
+            {
+                question: "\\[ \\int_{0}^{\\pi} \\cos x \\, dx \\]",
+                options: [
+                    "\\[ 0 \\]",
+                    "\\[ 1 \\]",
+                    "\\[ -1 \\]",
+                    "\\[ \\pi \\]"
+                ],
+                answer: 0
+            }
+        ];
+
+        // Variables del juego
+        let playerPosition = 0;
+        let cpuPosition = 0;
+        let playerScore = 0;
+        let cpuScore = 0;
+        let gameActive = true;
+        let currentQuestionIndex;
+
+        // Elementos del DOM
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const playerCar = document.getElementById('playerCar');
+        const cpuCar = document.getElementById('cpuCar');
+        const playerScoreEl = document.getElementById('playerScore');
+        const cpuScoreEl = document.getElementById('cpuScore');
+        const feedbackEl = document.getElementById('feedback');
+        const restartBtn = document.getElementById('restartBtn');
+        const homeBtn = document.getElementById('homeBtn');
+
+        // Iniciar juego
+        function startGame() {
+            playerPosition = 0;
+            cpuPosition = 0;
+            playerScore = 0;
+            cpuScore = 0;
+            gameActive = true;
+            
+            playerCar.style.left = "20px";
+            cpuCar.style.left = "20px";
+            playerScoreEl.textContent = "0";
+            cpuScoreEl.textContent = "0";
+            
+            loadRandomQuestion();
+        }
+
+        // Cargar pregunta aleatoria
+        function loadRandomQuestion() {
+            if (!gameActive) return;
+            
+            // Seleccionar pregunta aleatoria
+            currentQuestionIndex = Math.floor(Math.random() * questions.length);
+            const question = questions[currentQuestionIndex];
+            
+            // Mostrar pregunta
+            questionEl.innerHTML = question.question;
+            
+            // Mezclar opciones
+            const shuffledOptions = [...question.options]
+                .map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+            
+            // Mostrar opciones
+            optionsEl.innerHTML = '';
+            shuffledOptions.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.innerHTML = option;
+                
+                // Verificar si esta opción es la correcta (comparando contenido)
+                optionEl.addEventListener('click', () => {
+                    if (option === question.options[question.answer]) {
+                        handleCorrectAnswer();
+                    } else {
+                        handleIncorrectAnswer();
+                    }
+                });
+                
+                optionsEl.appendChild(optionEl);
+            });
+        }
+
+        // Manejar respuesta correcta
+        function handleCorrectAnswer() {
+            if (!gameActive) return;
+            
+            // Animación de feedback
+            feedbackEl.textContent = "✓ Correcto!";
+            feedbackEl.className = "feedback correct";
+            feedbackEl.style.opacity = 1;
+            
+            // Mover jugador
+            playerPosition += 100 + Math.floor(Math.random() * 50);
+            playerCar.style.left = `${20 + playerPosition}px`;
+            playerScore++;
+            playerScoreEl.textContent = playerScore;
+            
+            // Animación del auto
+            playerCar.style.animation = "engineBoost 0.3s";
+            setTimeout(() => {
+                playerCar.style.animation = "";
+            }, 300);
+            
+            // Verificar si ganó
+            if (playerPosition >= 650) {
+                gameActive = false;
+                setTimeout(() => {
+                    alert("🎉 ¡Ganaste la carrera!");
+                }, 500);
+            } else {
+                // Mover CPU (aleatorio con ventaja si el jugador va ganando)
+                const cpuAdvance = 50 + Math.floor(Math.random() * 80) + 
+                                  (playerPosition > cpuPosition ? 20 : 0);
+                cpuPosition += cpuAdvance;
+                cpuCar.style.left = `${20 + cpuPosition}px`;
+                cpuScore++;
+                cpuScoreEl.textContent = cpuScore;
+                
+                if (cpuPosition >= 650 && gameActive) {
+                    gameActive = false;
+                    setTimeout(() => {
+                        alert("😢 La CPU ganó esta vez");
+                    }, 500);
+                }
+            }
+            
+            // Ocultar feedback y cargar nueva pregunta
+            setTimeout(() => {
+                feedbackEl.style.opacity = 0;
+                if (gameActive) loadRandomQuestion();
+            }, 1000);
+        }
+
+        // Manejar respuesta incorrecta
+        function handleIncorrectAnswer() {
+            if (!gameActive) return;
+            
+            // Animación de feedback
+            feedbackEl.textContent = "✗ Error!";
+            feedbackEl.className = "feedback incorrect";
+            feedbackEl.style.opacity = 1;
+            
+            // Mover CPU (con mayor ventaja)
+            const cpuAdvance = 80 + Math.floor(Math.random() * 100);
+            cpuPosition += cpuAdvance;
+            cpuCar.style.left = `${20 + cpuPosition}px`;
+            cpuScore++;
+            cpuScoreEl.textContent = cpuScore;
+            
+            // Verificar si CPU ganó
+            if (cpuPosition >= 650) {
+                gameActive = false;
+                setTimeout(() => {
+                    alert("😢 La CPU ganó esta vez");
+                }, 500);
+            }
+            
+            // Ocultar feedback y cargar nueva pregunta
+            setTimeout(() => {
+                feedbackEl.style.opacity = 0;
+                if (gameActive) loadRandomQuestion();
+            }, 1000);
+        }
+
+        // Event listeners
+        restartBtn.addEventListener('click', startGame);
+        homeBtn.addEventListener('click', () => {
+            console.log("Botón 'Volver al menú' clickeado");
+            // Aquí iría la lógica para volver al menú principal
+        });
+
+        // Iniciar el juego al cargar la página
+        startGame();
+    </script>
+</body>
+</html>

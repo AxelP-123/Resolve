@@ -1,0 +1,104 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #fff0ff; /* Fondo muy claro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.game-container {
+  background-color: #ffffff; /* Blanco para el contenedor principal */
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  width: 400px;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  color: #4b1c71; /* Título principal */
+}
+
+#game h2 {
+  font-size: 20px;
+  color: #7f4ca5; /* Título de nivel */
+}
+
+#integral-question {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #b57edc; /* Preguntas */
+}
+
+button {
+  padding: 10px;
+  background-color: #dbb6ee; /* Fondo de botones */
+  color: #4b1c71; /* Texto de botones */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px; /* Reducido el margen para lista vertical */
+  width: 100%; /* Botones ocupan todo el ancho */
+  box-sizing: border-box; /* Incluye padding y border en el ancho */
+}
+
+button:hover {
+  background-color: #b57edc; /* Cambio de color al pasar el ratón */
+}
+
+.hidden {
+  display: none;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #7f4ca5; /* Resultados */
+}
+
+#score-board {
+  display: flex;
+  justify-content: space-between;
+}
+
+#score-board p {
+  margin: 5px 0; /* Añadido margen para mejor espaciado */
+  color: #4b1c71; /* Texto del marcador */
+}
+
+#options div {
+  margin: 5px 0; /* Espacio entre opciones */
+}
+
+#options button{
+  width: 95%;
+}
+
+#timer {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #7f4ca5;
+}
+
+#start-screen {
+  text-align: center;
+  padding: 50px;
+  background-color: #fff0ff;
+}
+
+#start-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #dbb6ee;
+  color: #4b1c71;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

@@ -1,0 +1,42 @@
+.container {
+  font-family: sans-serif;
+  width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#function-input, #controls {
+  margin-bottom: 20px;
+}
+
+#canvas-container {
+  width: 600px;
+  height: 400px;
+  margin: 0 auto 20px;
+}
+
+#results {
+  margin-top: 20px;
+}
+
+/* Colores morados */
+body {
+  background-color: #f8f0ff;
+}
+
+h1 {
+  color: #4b1c71;
+}
+
+button {
+  background-color: #b57edc;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #9349c2;
+}

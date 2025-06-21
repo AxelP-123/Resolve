@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="imagen/LogoA.ico">
+  <title>Serpientes e integrales 🎓</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", cursive;
+      background-color: #f3e8ff;
+      color: #3c0753;
+      text-align: center;
+    }
+
+    #menu {
+      margin: 20px;
+    }
+
+    #board {
+      display: none;
+      margin: 20px auto;
+      width: 360px;
+      height: 360px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      border: 5px solid #6a0dad;
+    }
+
+    .cell {
+      width: 60px;
+      height: 60px;
+      border: 1px solid #b88ee0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      position: relative;
+      background-color: #e9d6ff;
+    }
+
+    .player {
+      font-size: 24px;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+    }
+
+    .ladder { background-color: #d1aaff; }   /* morado claro */
+    .snake  { background-color: #f4ccff; }   /* rosa morado */
+    .quiz   { background-color: #fff0ff; }   /* blanco rosado */
+
+    #controls {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #questionBox {
+      display: none;
+      background: #f8e6ff;
+      border: 2px solid #6a0dad;
+      padding: 20px;
+      width: 300px;
+      margin: 10px auto;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #c084fc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a855f7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎓 Escaleras del Cálculo 🐍</h1>
+
+  <div id="menu">
+    <p>Selecciona el tipo de integrales:</p>
+    <label><input type="radio" name="type" value="indefinidas" checked> Indefinidas</label>
+    <label><input type="radio" name="type" value="definidas"> Definidas</label><br>
+    <button onclick="startGame()">Iniciar juego</button>
+  </div>
+
+  <div id="board"></div>
+
+  <div id="controls">
+    <button onclick="rollDice()">🎲 Tirar dado</button>
+    <button onclick="restartGame()">🔄 Regresar al menú</button>
+    <button id="back-button" onclick="window.location.href='juegos.php'">🏠Regresar</button>
+    <p id="status"></p>
+  </div>
+
+  <div id="questionBox">
+    <p id="questionText">¿?</p>
+    <input type="text" id="answer" placeholder="Tu respuesta">
+    <br><button onclick="checkAnswer()">Responder</button>
+  </div>
+
+  <audio id="soundCorrect" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+  <audio id="soundWrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="soundWin" src="https://actions.google.com/sounds/v1/alarms/winning_bell.ogg"></audio>
+
+  <script>
+    const board = document.getElementById("board");
+    const status = document.getElementById("status");
+    const questionBox = document.getElementById("questionBox");
+    const questionText = document.getElementById("questionText");
+    const answerInput = document.getElementById("answer");
+    const controls = document.getElementById("controls");
+
+    const soundCorrect = document.getElementById("soundCorrect");
+    const soundWrong = document.getElementById("soundWrong");
+    const soundWin = document.getElementById("soundWin");
+
+    const questions = {
+      indefinidas: [
+        { q: "∫ x dx", a: "0.5x^2" },
+        { q: "∫ 3x² dx", a: "x^3" },
+        { q: "∫ cos(x) dx", a: "sin(x)" },
+        { q: "∫ e^x dx", a: "e^x" },
+        { q: "∫ 1/x dx", a: "ln|x|" }
+      ],
+      definidas: [
+        { q: "∫₀¹ x dx", a: "0.5" },
+        { q: "∫₀² x² dx", a: "8/3" },
+        { q: "∫₀^π sin(x) dx", a: "2" },
+        { q: "∫¹^e 1/x dx", a: "1" }
+      ]
+    };
+
+    let currentType = "indefinidas";
+    let position = 0;
+    let playerIcon;
+
+    const specialCells = {
+      2: "quiz",
+      3: "ladder",
+      5: "snake",
+      7: "quiz",
+      10: "quiz",
+      12: "quiz",
+      15: "ladder",
+      18: "snake",
+      20: "quiz",
+      22: "quiz",
+      25: "quiz",
+      28: "quiz",
+      30: "snake",
+      33: "quiz"
+    };
+
+    function startGame() {
+      currentType = document.querySelector('input[name="type"]:checked').value;
+      board.innerHTML = "";
+      position = 0;
+
+      for (let i = 0; i < 36; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        if (specialCells[i]) cell.classList.add(specialCells[i]);
+        cell.id = "cell-" + i;
+        cell.innerHTML = i + 1;
+        board.appendChild(cell);
+      }
+
+      const startCell = document.getElementById("cell-0");
+      playerIcon = document.createElement("div");
+      playerIcon.className = "player";
+      playerIcon.textContent = "🧑‍🎓";
+      startCell.appendChild(playerIcon);
+
+      document.getElementById("menu").style.display = "none";
+      board.style.display = "grid";
+      controls.style.display = "block";
+    }
+
+    function rollDice() {
+      const dice = Math.floor(Math.random() * 6) + 1;
+      status.textContent = `Sacaste un ${dice}`;
+      movePlayer(position + dice);
+    }
+
+    function movePlayer(newPos) {
+      if (newPos >= 35) {
+        position = 35;
+        updatePosition();
+        status.textContent = "¡Ganaste! 🎉";
+        controls.style.display = "none";
+        soundWin.play();
+        return;
+      }
+
+      position = newPos;
+      updatePosition();
+
+      const cellType = specialCells[position];
+      if (cellType === "ladder") {
+        position += 3;
+        updatePosition();
+        status.textContent += " ¡Escalera! ⬆️";
+      } else if (cellType === "snake") {
+        position -= 3;
+        if (position < 0) position = 0;
+        updatePosition();
+        status.textContent += " ¡Serpiente! 🐍";
+      } else if (cellType === "quiz") {
+        askQuestion();
+      }
+    }
+
+    function updatePosition() {
+      board.querySelectorAll(".player").forEach(p => p.remove());
+      const cell = document.getElementById("cell-" + position);
+      cell.appendChild(playerIcon);
+    }
+
+    function askQuestion() {
+      const qList = questions[currentType];
+      const q = qList[Math.floor(Math.random() * qList.length)];
+      questionText.textContent = q.q;
+      questionBox.dataset.answer = q.a;
+      questionBox.style.display = "block";
+      controls.style.display = "none";
+    }
+
+    function checkAnswer() {
+      const userAnswer = answerInput.value.trim().toLowerCase().replace(/\s/g, "");
+      const correct = questionBox.dataset.answer.toLowerCase().replace(/\s/g, "");
+      if (userAnswer === correct) {
+        status.textContent = "¡Correcto! ✔️";
+        soundCorrect.play();
+      } else {
+        position = Math.max(0, position - 2);
+        updatePosition();
+        status.textContent = `Incorrecto 😢 La respuesta era: ${questionBox.dataset.answer}`;
+        soundWrong.play();
+      }
+      questionBox.style.display = "none";
+      controls.style.display = "block";
+      answerInput.value = "";
+    }
+
+    function restartGame() {
+      board.style.display = "none";
+      controls.style.display = "none";
+      questionBox.style.display = "none";
+      document.getElementById("menu").style.display = "block";
+    }
+  </script>
+</body>
+</html>
